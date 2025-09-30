@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 20,
-        backgroundColor: '#7B24F8', // Morado principal
+        backgroundColor: '#9e6ee2ff', // Morado principal
         borderBottomLeftRadius: 15,
         borderBottomRightRadius: 15,
         paddingTop: 50, // Espacio para la barra de estado
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     addButton: {
-        backgroundColor: '#9F5FFD', // Lila más claro para Añadir
+        backgroundColor: '#721bf5ff', // Lila más claro para Añadir
         padding: 10,
         borderRadius: 25,
         elevation: 5,

@@ -1,4 +1,3 @@
-// src/DetailScreen.js
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
 // *** CAMBIO CLAVE: Reemplazamos Feather por Ionicons para compatibilidad con Expo ***

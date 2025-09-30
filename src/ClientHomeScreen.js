@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, ActivityIndicator, FlatList, TouchableOpacity, 
 import { apiFetchAdminData } from './api'; 
 import { Ionicons } from '@expo/vector-icons'; 
 
-const PRIMARY_COLOR = '#007AFF'; // Un color azul más neutral para clientes
+const PRIMARY_COLOR = '#8c00ffff'; 
 const SECONDARY_COLOR = '#4A4A4A'; 
 
 // Componente de tarjeta de producto simplificado para el cliente
@@ -85,7 +85,7 @@ export default function ClientHomeScreen({ navigation, userData, handleLogout })
                     keyExtractor={(item, index) => (item.id || item.nombre || index).toString()}
                     renderItem={({ item }) => <ClientProductCard product={item} />}
                     ListHeaderComponent={() => (
-                        <Text style={styles.sectionTitle}>Productos en Oferta ({data.productos.length})</Text>
+                        <Text style={styles.sectionTitle}>Productos ({data.productos.length})</Text>
                     )}
                     ItemSeparatorComponent={() => <View style={{height: 10}} />}
                 />
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 20,
-        backgroundColor: '#FFFFFF', 
+        backgroundColor: '#c5b5f0ff', 
         borderBottomWidth: 1,
         borderBottomColor: '#E0E0E0',
         paddingTop: 50, 
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
         color: SECONDARY_COLOR, 
     },
     logoutButton: {
-        backgroundColor: '#CC0000', 
+        backgroundColor: '#d10000ff', 
         padding: 8,
         borderRadius: 20,
     },

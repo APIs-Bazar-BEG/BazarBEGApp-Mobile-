@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
-import { apiLogin } from './api'; // Asegúrate de que api.js esté en src/
+import { apiLogin } from './api'; 
 
 const logoImage = require('../assets/Logo.png'); 
 // Obtener dimensiones de la pantalla para diseño responsivo
@@ -37,14 +37,7 @@ const LoginScreen = ({ handleLogin }) => {
             const response = await apiLogin(email, password);
 
             if (response && response.token) {
-                // Éxito: Llamamos a la función de App.js y pasamos los datos.
-                // Asumimos que la respuesta (response) contiene { token: '...', role: '...' }
-                
-                // --- AJUSTE CLAVE AQUÍ ---
-                // Si tu API envuelve los datos del usuario, por ejemplo: { data: { token: ..., user: { role: ... } } }
-                // Debes cambiar la línea de abajo para extraer el token y el rol
-                
-                // Ejemplo de extracción (si la API devuelve { token, role, email }):
+            
                 const userData = {
                     token: response.token,
                     email: response.email,
