@@ -78,7 +78,7 @@ const LoginScreen = ({ handleLogin }) => {
                     style={styles.logo}
                 />
                 <Text style={styles.title}>Bazar BEG</Text>
-                <Text style={styles.subtitle}>Portal de Administración</Text>
+                <Text style={styles.subtitle}>Brilla. Encanta. Gobierna</Text>
 
                 {/* Campos de Entrada */}
                 <TextInput
