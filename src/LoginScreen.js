@@ -1,192 +1,201 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import { apiLogin } from './api';
-// Cambiamos a Ionicons para consistencia con HomeScreen
-import { Ionicons } from '@expo/vector-icons'; 
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
+import { apiLogin } from './api'; // Asegúrate de que api.js esté en src/
 
-// Definimos el color principal de BazarBEG (Morado)
-const PRIMARY_COLOR = '#7B24F8'; 
-const SECONDARY_COLOR = '#5A1A9A'; // Morado más oscuro para textos y bordes
+const logoImage = require('../assets/Logo.png'); 
+// Obtener dimensiones de la pantalla para diseño responsivo
+const { width } = Dimensions.get('window');
+
+// Definiciones de color
+const PRIMARY_COLOR = '#7B24F8'; // Morado BazarBEG
+const SECONDARY_COLOR = '#9933FF'; 
+const INPUT_BORDER_COLOR = '#ccc';
 
 /**
- * Pantalla de Login
- * @param {object} props - Propiedades de navegación y manejo de autenticación.
- * @param {function} props.handleLogin - Función para establecer el estado de usuario en App.js.
+ * Pantalla de inicio de sesión.
+ * Permite al usuario ingresar credenciales y autenticarse.
+ * @param {object} props - Propiedades de navegación y la función handleLogin de App.js.
  */
-const LoginScreen = ({ handleLogin }) => { 
-    
-    const loginHandler = handleLogin || (() => console.log("handleLogin no disponible"));
-
-    // Credenciales de prueba
+const LoginScreen = ({ handleLogin }) => {
+    // Credenciales de prueba temporales para desarrollo
     const [email, setEmail] = useState('adminBEG@gmail.com');
     const [password, setPassword] = useState('admin123');
-    const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleLoginPress = async () => {
+    /**
+     * Intenta autenticar al usuario usando la API.
+     */
+    const loginUser = async () => {
         if (!email || !password) {
-            setError('Por favor, ingresa email y contraseña.');
+            Alert.alert("Error", "Por favor, ingresa tu correo y contraseña.");
             return;
         }
 
         setIsLoading(true);
-        setError('');
-
         try {
-            const userData = await apiLogin(email, password); 
-            
-            if (userData && userData.token) {
-                // Si el login es exitoso, llamamos a la función pasada por App.js
-                loginHandler(userData);
+            // Llama a la función de API para login
+            const response = await apiLogin(email, password);
+
+            if (response && response.token) {
+                // Éxito: Llamamos a la función de App.js y pasamos los datos.
+                // Asumimos que la respuesta (response) contiene { token: '...', role: '...' }
+                
+                // --- AJUSTE CLAVE AQUÍ ---
+                // Si tu API envuelve los datos del usuario, por ejemplo: { data: { token: ..., user: { role: ... } } }
+                // Debes cambiar la línea de abajo para extraer el token y el rol
+                
+                // Ejemplo de extracción (si la API devuelve { token, role, email }):
+                const userData = {
+                    token: response.token,
+                    email: response.email,
+                    role: response.role // Aquí se extrae el rol
+                };
+                
+                handleLogin(userData);
             } else {
-                setError('Login exitoso, pero el servidor no envió el token de autenticación.');
+                // Falla: Si no hay token en la respuesta, es una credencial inválida.
+                Alert.alert("Error de Acceso", "Credenciales inválidas o el servidor no devolvió un token de sesión.");
             }
-        } catch (err) {
-            // Manejamos errores de autenticación o de red
-            setError(err.message || 'Error de red o credenciales inválidas.');
-            console.error('Error durante el login:', err);
+        } catch (error) {
+            console.error("Error durante el login:", error);
+            // Mensaje de error general para el usuario
+            Alert.alert("Error al iniciar sesión", "Credenciales inválidas o error de servidor.");
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.card}>
-                
-                {/* Ícono de Pavo Real estilizado (Brillos/Elegancia) */}
-                <Ionicons name="sparkles" size={60} color={PRIMARY_COLOR} style={styles.logoIcon} />
-
+        <KeyboardAvoidingView 
+            style={styles.container} 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+            <View style={styles.content}>
+                {/* Título y Logo */}
+                <Image
+                    
+                    source={logoImage} 
+                    style={styles.logo}
+                />
                 <Text style={styles.title}>Bazar BEG</Text>
-                
-                {/* Input de Email */}
-                <View style={styles.inputContainer}>
-                    <Ionicons name="mail-outline" size={24} color={SECONDARY_COLOR} style={styles.icon} />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Correo electrónico"
-                        value={email}
-                        onChangeText={setEmail}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        placeholderTextColor="#9CA3AF"
-                    />
-                </View>
+                <Text style={styles.subtitle}>Portal de Administración</Text>
 
-                {/* Input de Contraseña */}
-                <View style={styles.inputContainer}>
-                    <Ionicons name="lock-closed-outline" size={24} color={SECONDARY_COLOR} style={styles.icon} />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Contraseña"
-                        value={password}
-                        onChangeText={setPassword}
-                        secureTextEntry
-                        placeholderTextColor="#9CA3AF"
-                    />
-                </View>
-
-                {/* Mensaje de Error */}
-                {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                {/* Campos de Entrada */}
+                <TextInput
+                    style={styles.input}
+                    placeholder="Correo electrónico"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    placeholderTextColor="#888"
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Contraseña"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    placeholderTextColor="#888"
+                />
 
                 {/* Botón de Login */}
                 <TouchableOpacity
-                    style={[styles.button, isLoading && styles.buttonDisabled]}
-                    onPress={handleLoginPress}
+                    style={styles.button}
+                    onPress={loginUser}
                     disabled={isLoading}
-                    activeOpacity={0.8}
                 >
-                    {isLoading ? (
-                        <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                        <Text style={styles.buttonText}>INGRESAR</Text>
-                    )}
+                    <Text style={styles.buttonText}>
+                        {isLoading ? 'Cargando...' : 'Iniciar Sesión'}
+                    </Text>
                 </TouchableOpacity>
+
+                {/* Enlace o Texto Adicional (opcional) */}
+                <TouchableOpacity style={styles.forgotPassword}>
+                    <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+                </TouchableOpacity>
+
             </View>
-        </View>
+        </KeyboardAvoidingView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#f8f8f8',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#EAEAEA', // Fondo Gris claro
     },
-    card: {
-        width: '90%',
-        maxWidth: 400,
-        backgroundColor: '#fff',
-        borderRadius: 20,
+    content: {
+        width: width * 0.85, // 85% del ancho de la pantalla
         padding: 30,
-        elevation: 15,
-        shadowColor: PRIMARY_COLOR,
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.2,
-        shadowRadius: 10,
-        borderTopWidth: 5,
-        borderTopColor: PRIMARY_COLOR, // Borde superior morado
+        borderRadius: 15,
+        backgroundColor: '#fff',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 8,
+        alignItems: 'center',
     },
-    logoIcon: {
-        alignSelf: 'center',
+    logo: {
+       width: 120, // Aumentado ligeramente para mejor vista
+        height: 120,
+        borderRadius: 60, // Mantiene forma circular
         marginBottom: 10,
+        borderWidth: 3,
+        borderColor: PRIMARY_COLOR,
+        // La imagen debe llenar el espacio.
+        resizeMode: 'cover' 
     },
     title: {
-        fontSize: 26,
-        fontWeight: '900', // Muy negrita para impacto
+        fontSize: 28,
+        fontWeight: '900',
+        color: PRIMARY_COLOR,
+        marginBottom: 5,
+    },
+    subtitle: {
+        fontSize: 16,
+        color: '#666',
         marginBottom: 30,
-        textAlign: 'center',
-        color: SECONDARY_COLOR, // Morado oscuro
-    },
-    inputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F7F7F7',
-        borderRadius: 10,
-        marginBottom: 15,
-        paddingHorizontal: 15,
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-    },
-    icon: {
-        marginRight: 10,
     },
     input: {
-        flex: 1,
+        width: '100%',
         height: 50,
-        fontSize: 16,
-        color: '#333',
+        backgroundColor: '#f0f0f0',
+        borderRadius: 10,
+        paddingHorizontal: 15,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: INPUT_BORDER_COLOR,
     },
     button: {
-        backgroundColor: PRIMARY_COLOR, // Morado principal
-        padding: 15,
+        width: '100%',
+        height: 50,
+        backgroundColor: PRIMARY_COLOR,
         borderRadius: 10,
+        justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 20,
+        marginTop: 10,
         shadowColor: PRIMARY_COLOR,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.4,
         shadowRadius: 5,
-        elevation: 8,
-    },
-    buttonDisabled: {
-        backgroundColor: '#C8A2C8', // Lila apagado
-        shadowOpacity: 0,
-        elevation: 0,
+        elevation: 10,
     },
     buttonText: {
         color: '#fff',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontWeight: '700',
     },
-    errorText: {
-        color: '#D90429', // Rojo de error
-        textAlign: 'center',
-        marginBottom: 15,
+    forgotPassword: {
+        marginTop: 20,
+    },
+    forgotPasswordText: {
+        color: SECONDARY_COLOR,
         fontSize: 14,
-        fontWeight: '600',
-    },
+    }
 });
 
 export default LoginScreen;

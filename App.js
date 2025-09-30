@@ -1,15 +1,15 @@
-// App.js
-import 'react-native-gesture-handler'; // Importación requerida para evitar errores
+import 'react-native-gesture-handler'; 
 import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 
 // Importar las pantallas
 import LoginScreen from './src/LoginScreen';
 import HomeScreen from './src/HomeScreen';
 import DetailScreen from './src/DetailScreen'; 
-import CategoryDetailScreen from './src/CategoryDetailScreen'; // <--- NUEVA IMPORTACIÓN
+import CategoryDetailScreen from './src/CategoryDetailScreen'; 
+import ClientHomeScreen from './src/ClientHomeScreen'; 
 import { StatusBar } from 'expo-status-bar';
 
 const Stack = createNativeStackNavigator();
@@ -21,92 +21,114 @@ const PRIMARY_COLOR = '#7B24F8';
  * Componente principal que maneja la autenticación y la navegación.
  */
 const App = () => {
-    // user: { userData: { user: {...}, token: '...' } } o null si no está autenticado
-    const [user, setUser] = useState(null);
+    // userData: { token: '...', role: 'admin'/'client' } o null
+    const [userData, setUserData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
     /**
      * Función que se llama desde LoginScreen al iniciar sesión con éxito.
-     * @param {object} userData - Datos del usuario y token recibidos de la API.
      */
-    const handleLogin = (userData) => {
-        setUser(userData);
+    const handleLogin = (data) => {
+        // data debe contener { token, email, role }
+        setUserData(data);
     };
 
     /**
-     * Función para cerrar sesión, restablece el estado del usuario a null.
+     * Función para cerrar sesión.
      */
     const handleLogout = () => {
-        setUser(null);
+        setUserData(null);
     };
 
     if (isLoading) {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={PRIMARY_COLOR} />
+                <Text style={styles.loadingText}>Cargando aplicación...</Text>
             </View>
         );
     }
 
+    // Obtenemos el token y el rol
+    const userToken = userData?.token;
+    // Asumimos que si no hay rol, es el rol por defecto (admin)
+    const userRole = userData?.role || 'ADMIN'; 
+
     return (
         <NavigationContainer>
-            {/* Establece la barra de estado con un color oscuro para que contraste con el encabezado morado */}
             <StatusBar style="light" /> 
             <Stack.Navigator
-                // Opciones comunes para el encabezado (Header)
                 screenOptions={{
-                    headerStyle: { backgroundColor: PRIMARY_COLOR }, // Aplicamos el color morado de BazarBEG
+                    headerStyle: { backgroundColor: PRIMARY_COLOR }, 
                     headerTintColor: '#fff', 
                     headerTitleStyle: { fontWeight: 'bold' }
                 }}
             >
-                {/* Si 'user' es nulo, mostramos la pantalla de Login. */}
-                {!user ? (
+                {/* --------------------- LÓGICA DE NAVEGACIÓN PRINCIPAL --------------------- */}
+                {!userToken ? (
+                    // 1. SIN AUTENTICAR: Mostrar solo Login
                     <Stack.Screen
                         name="Login"
                         options={{ headerShown: false }} 
                     >
-                        {/* Renderiza la pantalla y pasa handleLogin como prop */}
                         {(props) => <LoginScreen {...props} handleLogin={handleLogin} />}
                     </Stack.Screen>
-                ) : (
-                    // Si 'user' tiene datos (está logueado), mostramos las pantallas internas.
+                ) : userRole === 'ADMIN' ? (
+                    // 2. AUTENTICADO COMO ADMINISTRADOR: Mostrar Rutas de Gestión
                     <>
                         <Stack.Screen
                             name="Home"
-                            options={{ title: 'Bazar BEG - Admin' }}
+                            options={{ title: 'Bazar BEG - Inventario', headerShown: false }}
                         >
-                            {/* Renderiza la pantalla y pasa los datos esenciales como props */}
                             {(props) => (
                                 <HomeScreen 
                                     {...props} 
-                                    userData={user} 
+                                    userData={userData} 
                                     handleLogout={handleLogout} 
                                 />
                             )}
                         </Stack.Screen>
 
-                        {/* 1. RUTA: Pantalla de Detalle del Producto */}
+                        <Stack.Screen
+                            name="CreateProduct"
+                            options={{ title: 'Añadir Nuevo Producto' }}
+                        >
+                            {(props) => <CreateProductScreen {...props} userData={userData} />}
+                        </Stack.Screen>
+
                         <Stack.Screen
                             name="Detail"
                             component={DetailScreen}
                             options={({ route }) => ({
-                                // Usamos el nombre del producto en el encabezado
-                                title: route.params.product.nombre || 'Detalle del Producto', 
+                                title: route.params.product.nombre || 'Detalle Producto', 
                                 headerBackTitle: 'Volver'
                             })}
                         />
-                        
-                        {/* 2. NUEVA RUTA: Pantalla de Detalle de Categoría */}
+
                         <Stack.Screen
-                            name="CategoryDetail" // Nombre de la nueva ruta
+                            name="CategoryDetail" 
                             component={CategoryDetailScreen}
                             options={({ route }) => ({
-                                // Usamos el nombre de la categoría en el encabezado
-                                title: route.params.category.nombre || 'Detalle de Categoría', 
+                                title: route.params.category.nombre || 'Detalle Categoría', 
                                 headerBackTitle: 'Catálogo'
                             })}
                         />
+                    </>
+                ) : (
+                    // 3. AUTENTICADO COMO CLIENTE (O CUALQUIER OTRO ROL): Mostrar Rutas de Tienda
+                    <>
+                        <Stack.Screen
+                            name="ClientHome"
+                            options={{ title: 'Bazar BEG - Tienda', headerShown: false }}
+                        >
+                            {(props) => (
+                                <ClientHomeScreen 
+                                    {...props} 
+                                    userData={userData} 
+                                    handleLogout={handleLogout} 
+                                />
+                            )}
+                        </Stack.Screen>
                     </>
                 )}
             </Stack.Navigator>
@@ -120,6 +142,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: PRIMARY_COLOR,
+    }
 });
 
 export default App;
